@@ -1,0 +1,3 @@
+[submodule "c-toxcore"]
+	path = c-toxcore
+	url = https://github.com/TokTok/c-toxcore.git
