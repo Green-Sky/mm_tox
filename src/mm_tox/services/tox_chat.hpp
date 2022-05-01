@@ -4,10 +4,10 @@
 
 #include <set>
 
-namespace MM::Services::Tox {
+namespace MM::Tox::Services {
 
 // requires a ToxSerice to be enabled
-class ToxChat : public Service {
+class ToxChat : public MM::Services::Service {
 	public:
 		bool _show_friends = true;
 		bool _show_chats = false;
@@ -42,5 +42,5 @@ class ToxChat : public Service {
 		void renderImGui(Engine& engine);
 };
 
-} // MM::Services::Tox
+} // MM::Tox::Services
 

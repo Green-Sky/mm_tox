@@ -1,6 +1,6 @@
 #include "./tox.hpp"
 
-#include <services/mm_tox/tox_service.hpp>
+#include <mm_tox/services/tox_service.hpp>
 
 #include <imgui/imgui.h>
 
@@ -12,7 +12,7 @@ void AddFriend(MM::Engine& engine, std::string_view message) {
 
 	static bool r = true;
 	if (ImGui::Button("add friend")) {
-		auto& ts = engine.getService<MM::Services::Tox::ToxService>();
+		auto& ts = engine.getService<MM::Tox::Services::ToxService>();
 		r = ts.add_friend(std::string_view(tox_id, TOX_ADDRESS_SIZE*2), message);
 	}
 	//if (err_f_add != TOX_ERR_FRIEND_ADD_OK) {
