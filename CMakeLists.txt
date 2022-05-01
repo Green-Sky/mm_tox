@@ -10,11 +10,11 @@ include(./toxcore.cmake)
 #####################################
 
 add_library(mm_tox
-	./src/services/mm_tox/tox_service.hpp
-	./src/services/mm_tox/tox_service.cpp
+	./src/mm_tox/services/tox_service.hpp
+	./src/mm_tox/services/tox_service.cpp
 
-	./src/services/mm_tox/tox_net_channeled.hpp
-	./src/services/mm_tox/tox_net_channeled.cpp
+	./src/mm_tox/services/tox_net_channeled.hpp
+	./src/mm_tox/services/tox_net_channeled.cpp
 )
 
 target_link_libraries(mm_tox
@@ -33,8 +33,8 @@ add_library(mm_tox_imgui
 	./src/mm_tox/imgui/widgets/tox.hpp
 	./src/mm_tox/imgui/widgets/tox.cpp
 
-	./src/services/mm_tox/tox_chat.hpp
-	./src/services/mm_tox/tox_chat.cpp
+	./src/mm_tox/services/tox_chat.hpp
+	./src/mm_tox/services/tox_chat.cpp
 )
 
 target_link_libraries(mm_tox_imgui

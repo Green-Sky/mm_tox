@@ -2,13 +2,13 @@
 
 #include <mm/services/net_channeled_interface.hpp>
 
-#include <services/mm_tox/tox_service.hpp>
+#include <mm_tox/services/tox_service.hpp>
 
 #include <vector>
 #include <map>
 #include <array>
 
-namespace MM::Services::Tox {
+namespace MM::Tox::Services {
 
 // uses ToxService to provide the NetChanneledInterface service
 class ToxNetChanneled : public MM::Services::NetChanneledInterface {
@@ -75,5 +75,5 @@ class ToxNetChanneled : public MM::Services::NetChanneledInterface {
 		uint32_t toTox(const peer_id peer) const { return peer; }
 };
 
-} // MM::Services::Tox
+} // MM::Tox::Services
 
