@@ -12,7 +12,7 @@
 // fwd
 //typedef struct Tox Tox;
 
-namespace MM::Services::Tox {
+namespace MM::Tox::Services {
 
 // the pkg id for "internal" pkgs
 //#define MM_TOX_LOSSY_PKG_ID_INTERNAL 1900000
@@ -33,7 +33,7 @@ enum ToxInternalPkgID : uint8_t {
 	ToxInternalPkgID_MAX		// used for undefined (error)
 };
 
-class ToxService : public Service {
+class ToxService : public MM::Services::Service {
 	// callbacks need public
 	public:
 		std::string _path_to_toxsave;
@@ -192,5 +192,5 @@ class ToxService : public Service {
 		}
 };
 
-} // MM::Services::Tox
+} // MM::Tox::Services
 
