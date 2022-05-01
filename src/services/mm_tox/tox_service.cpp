@@ -13,6 +13,7 @@
 #include <string_view>
 #include <utility>
 #include <vector>
+#include <array>
 #include <cstring>
 #include <cassert>
 
