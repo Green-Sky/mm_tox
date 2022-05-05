@@ -4,15 +4,13 @@
 
 // TODO: make tox.h private
 #include <tox.h>
-#include <unordered_map>
-#include <unordered_set>
+#include <map>
 #include <deque>
-#include <optional>
 
 // fwd
 //typedef struct Tox Tox;
 
-namespace MM::Services::Tox {
+namespace MM::Tox::Services {
 
 // the pkg id for "internal" pkgs
 //#define MM_TOX_LOSSY_PKG_ID_INTERNAL 1900000
@@ -33,7 +31,7 @@ enum ToxInternalPkgID : uint8_t {
 	ToxInternalPkgID_MAX		// used for undefined (error)
 };
 
-class ToxService : public Service {
+class ToxService : public MM::Services::Service {
 	// callbacks need public
 	public:
 		std::string _path_to_toxsave;
@@ -62,19 +60,25 @@ class ToxService : public Service {
 			std::deque<std::vector<uint8_t>> packets_internal;
 			std::deque<std::vector<uint8_t>> packets_lossless_internal;
 		};
-		std::unordered_map<uint32_t, ToxFriend> _tox_friends; // friend_number
+		std::map<uint32_t, ToxFriend> _tox_friends; // friend_number
 
 		struct ToxConference {
 			Tox_Conference_Type type;
 			//bool connected = false; // ??
 			std::string title;
 
-			std::unordered_map<uint32_t, std::string> peers; // peer_number, name
+			std::map<uint32_t, std::string> peers; // peer_number, name
 			std::vector<std::tuple<uint32_t, Tox_Message_Type, std::string>> messages; // peer_number, msg_type, msg
 
 			// sadly no custom packet support yet -> see groups
 		};
-		std::unordered_map<uint32_t, ToxConference> _tox_conferences; // conference_number
+		std::map<uint32_t, ToxConference> _tox_conferences; // conference_number
+
+		// "NGC"
+		struct ToxGroup {
+			Tox_Group_Privacy_State privacy_state;
+		};
+		std::map<uint32_t, ToxConference> _tox_groups; // group_number
 
 		// TODO: implement reciept
 		//struct ToxFriendMessage {
@@ -82,7 +86,7 @@ class ToxService : public Service {
 			//std::string msg;
 			//bool receipt_received = false;
 		//};
-		//std::unordered_map<uint32_t, std::vector<ToxFriendMessage>> _tox_friend_msgs;
+		//std::map<uint32_t, std::vector<ToxFriendMessage>> _tox_friend_msgs;
 
 	public:
 		ToxService(void);
@@ -192,5 +196,5 @@ class ToxService : public Service {
 		}
 };
 
-} // MM::Services::Tox
+} // MM::Tox::Services
 

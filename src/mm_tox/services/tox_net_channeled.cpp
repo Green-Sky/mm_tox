@@ -1,6 +1,6 @@
 #include "./tox_net_channeled.hpp"
 
-#include <services/mm_tox/tox_service.hpp>
+#include <mm_tox/services/tox_service.hpp>
 
 #include <entt/core/hashed_string.hpp>
 
@@ -9,7 +9,7 @@
 
 #include <mm/logger.hpp>
 
-namespace MM::Services::Tox {
+namespace MM::Tox::Services {
 
 // package structure:
 // lossless:
@@ -21,7 +21,7 @@ namespace MM::Services::Tox {
 bool ToxNetChanneled::enable(Engine& engine, std::vector<UpdateStrategies::TaskInfo>& task_array) {
 	_packets.clear();
 
-	_tox_service = engine.tryService<MM::Services::Tox::ToxService>();
+	_tox_service = engine.tryService<ToxService>();
 	if (!_tox_service) {
 		return false;
 	}
@@ -258,5 +258,5 @@ void ToxNetChanneled::clearPackets(void) {
 	_packets.clear(); // TODO: this is bad
 }
 
-} // MM::Services::Tox
+} // MM::Tox::Services
 

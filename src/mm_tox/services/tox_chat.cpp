@@ -9,7 +9,7 @@
 
 #include <mm_tox/imgui/widgets/tox.hpp>
 
-#include <services/mm_tox/tox_service.hpp>
+#include <mm_tox/services/tox_service.hpp>
 
 #include <mm/logger.hpp>
 #define LOG_CRIT(...)		__LOG_CRIT(	"MM::Tox", __VA_ARGS__)
@@ -19,10 +19,10 @@
 #define LOG_DEBUG(...)		__LOG_DEBUG("MM::Tox", __VA_ARGS__)
 #define LOG_TRACE(...)		__LOG_TRACE("MM::Tox", __VA_ARGS__)
 
-namespace MM::Services::Tox {
+namespace MM::Tox::Services {
 
 bool ToxChat::enable(Engine& engine, std::vector<UpdateStrategies::TaskInfo>& task_array) {
-	if (!engine.tryService<MM::Services::Tox::ToxService>()) {
+	if (!engine.tryService<ToxService>()) {
 		LOG_ERROR("[ToxChat] ToxService is not in engine");
 		return false;
 	}
@@ -83,7 +83,7 @@ void ToxChat::focusChat(uint32_t id, bool conference, bool group) {
 }
 
 void ToxChat::renderFriendGroupList(Engine& engine) {
-	auto& ts = engine.getService<MM::Services::Tox::ToxService>();
+	auto& ts = engine.getService<ToxService>();
 
 	if (ImGui::BeginTable("Friendtable", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY)) {
 		ImGui::TableSetupColumn("type", ImGuiTableColumnFlags_WidthFixed, 10.f); // or avatar?
@@ -189,7 +189,7 @@ void ToxChat::renderFriendGroupList(Engine& engine) {
 
 void ToxChat::renderFriends(Engine& engine) {
 	if (ImGui::Begin("ToxFriends", &_show_friends)) {
-		auto& ts = engine.getService<MM::Services::Tox::ToxService>();
+		auto& ts = engine.getService<ToxService>();
 
 		if (ImGui::BeginTabBar("friends##tabs")) {
 			if (ImGui::BeginTabItem("Friend List")) {
@@ -228,7 +228,7 @@ void ToxChat::renderFriends(Engine& engine) {
 
 void ToxChat::renderChats(Engine& engine) {
 	if (ImGui::Begin("ToxChats", &_show_chats)) {
-		auto& ts = engine.getService<MM::Services::Tox::ToxService>();
+		auto& ts = engine.getService<ToxService>();
 		static bool follow = true;
 
 		if (ImGui::BeginTabBar("tox_chats##tabs")) {
@@ -315,7 +315,7 @@ void ToxChat::renderChats(Engine& engine) {
 
 void ToxChat::renderSettings(Engine& engine) {
 	if (ImGui::Begin("ToxSettings", &_show_settings)) {
-		auto& ts = engine.getService<MM::Services::Tox::ToxService>();
+		auto& ts = engine.getService<ToxService>();
 
 		{
 			static std::string tmp_name = ts.get_name();
