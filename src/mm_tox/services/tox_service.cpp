@@ -910,69 +910,124 @@ static void friend_lossless_packet_cb(Tox*, uint32_t friend_number, const uint8_
 
 static void group_peer_name_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, const uint8_t *name, size_t length, void *user_data) {
 	LOGTOXCB("group_peer_name_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_peer_status_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_User_Status status, void *user_data) {
 	LOGTOXCB("group_peer_status_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_topic_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, const uint8_t *topic, size_t length, void *user_data) {
 	LOGTOXCB("group_topic_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_privacy_state_cb(Tox *tox, uint32_t group_number, Tox_Group_Privacy_State privacy_state, void *user_data) {
 	LOGTOXCB("group_privacy_state_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_voice_state_cb(Tox *tox, uint32_t group_number, Tox_Group_Voice_State voice_state, void *user_data) {
 	LOGTOXCB("group_voice_state_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_topic_lock_cb(Tox *tox, uint32_t group_number, Tox_Group_Topic_Lock topic_lock, void *user_data) {
 	LOGTOXCB("group_topic_lock_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_peer_limit_cb(Tox *tox, uint32_t group_number, uint32_t peer_limit, void *user_data) {
 	LOGTOXCB("group_peer_limit_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_password_cb(Tox *tox, uint32_t group_number, const uint8_t *password, size_t length, void *user_data) {
 	LOGTOXCB("group_password_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, void *user_data) {
 	LOGTOXCB("group_message_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_private_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, void *user_data) {
 	LOGTOXCB("group_private_message_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_custom_packet_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, const uint8_t *data, size_t length, void *user_data) {
 	LOGTOXCB("group_custom_packet_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_invite_cb(Tox *tox, uint32_t friend_number, const uint8_t *invite_data, size_t length, const uint8_t *group_name, size_t group_name_length, void *user_data) {
 	LOGTOXCB("group_invite_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+
+	std::string tox_name = ts->get_name();
+
+	// HACK: auto accept invites
+	// TODO: implement requests
+	Tox_Err_Group_Invite_Accept err_gia = TOX_ERR_GROUP_INVITE_ACCEPT_OK;
+	uint32_t new_group_number = tox_group_invite_accept(
+		tox,
+		friend_number,
+		invite_data, length,
+		reinterpret_cast<const uint8_t*>(tox_name.data()), tox_name.size(),
+		nullptr, // password
+		0, // password_length
+		&err_gia
+	);
+
+	if (new_group_number != UINT32_MAX && err_gia == TOX_ERR_GROUP_INVITE_ACCEPT_OK) {
+		auto& group = ts->_tox_groups[new_group_number];
+		LOG_INFO("accepted invite to group {}", new_group_number);
+	} else {
+		LOG_ERROR("error accepting group invite: {}", err_gia);
+	}
 }
 
 static void group_peer_join_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, void *user_data) {
 	LOGTOXCB("group_peer_join_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_peer_exit_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Group_Exit_Type exit_type, const uint8_t *name, size_t name_length, const uint8_t *part_message, size_t length, void *user_data) {
 	LOGTOXCB("group_peer_exit_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_self_join_cb(Tox *tox, uint32_t group_number, void *user_data) {
 	LOGTOXCB("group_self_join_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_join_fail_cb(Tox *tox, uint32_t group_number, Tox_Group_Join_Fail fail_type, void *user_data) {
 	LOGTOXCB("group_join_fail_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
 static void group_moderation_cb(Tox *tox, uint32_t group_number, uint32_t source_peer_id, uint32_t target_peer_id, Tox_Group_Mod_Event mod_type, void *user_data) {
 	LOGTOXCB("group_moderation_cb");
+	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
+	auto& group = ts->_tox_groups[group_number];
 }
 
