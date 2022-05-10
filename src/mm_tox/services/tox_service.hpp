@@ -77,8 +77,21 @@ class ToxService : public MM::Services::Service {
 		// "NGC"
 		struct ToxGroup {
 			Tox_Group_Privacy_State privacy_state;
+			std::string name;
+			std::string topic;
+			Tox_Group_Voice_State voice_state;
+
+			struct Peer {
+				bool self {false};
+				Tox_Group_Role role;
+				std::string name;
+				Tox_User_Status status;
+				// public key
+				// connection type (nah, just query)
+			};
+			std::map<uint32_t, Peer> peers; // peer_number
 		};
-		std::map<uint32_t, ToxConference> _tox_groups; // group_number
+		std::map<uint32_t, ToxGroup> _tox_groups; // group_number
 
 		// TODO: implement reciept
 		//struct ToxFriendMessage {
