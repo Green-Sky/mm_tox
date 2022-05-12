@@ -722,6 +722,31 @@ bool ToxService::add_friend(std::string_view text_tox_id, std::string_view msg) 
 	return add_friend(bin_rep, msg);
 }
 
+bool ToxService::group_send_message(uint32_t group_number, std::string_view msg) {
+	Tox_Err_Group_Send_Message err_group_send_m;
+
+	tox_group_send_message(
+		_tox,
+		group_number,
+		Tox_Message_Type::TOX_MESSAGE_TYPE_NORMAL,
+		reinterpret_cast<const uint8_t*>(msg.data()),
+		msg.size(),
+		&err_group_send_m
+	);
+
+	bool succ = err_group_send_m == Tox_Err_Group_Send_Message::TOX_ERR_GROUP_SEND_MESSAGE_OK;
+
+	if (succ) {
+		_tox_groups[group_number].messages.push_back({
+			tox_group_self_get_peer_id(_tox, group_number, nullptr),
+			Tox_Message_Type::TOX_MESSAGE_TYPE_NORMAL,
+			std::string{msg}
+		});
+	}
+
+	return succ;
+}
+
 std::string ToxService::get_name(void) {
 	std::string name(tox_self_get_name_size(_tox), '\0');
 	tox_self_get_name(_tox, reinterpret_cast<uint8_t*>(name.data()));
@@ -894,9 +919,9 @@ static void conference_connected_cb(Tox *tox, uint32_t conference_number, void *
 	LOGTOXCB("conference_connected_cb");
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 
-	auto& g = ts->_tox_conferences[conference_number];
+	auto& c = ts->_tox_conferences[conference_number];
 	Tox_Err_Conference_Get_Type err_conf_get_type;
-	g.type = tox_conference_get_type(tox, conference_number, &err_conf_get_type);
+	c.type = tox_conference_get_type(tox, conference_number, &err_conf_get_type);
 	assert(err_conf_get_type == Tox_Err_Conference_Get_Type::TOX_ERR_CONFERENCE_GET_TYPE_OK);
 
 	ts->_state_dirty = true;
@@ -906,28 +931,28 @@ static void conference_message_cb(Tox *, uint32_t conference_number, uint32_t pe
 	LOGTOXCB("conference_message_cb");
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 
-	auto& g = ts->_tox_conferences[conference_number];
+	auto& c = ts->_tox_conferences[conference_number];
 
-	g.messages.emplace_back(peer_number, type, std::string(reinterpret_cast<const char*>(message), length));
+	c.messages.emplace_back(peer_number, type, std::string(reinterpret_cast<const char*>(message), length));
 }
 
 static void conference_title_cb(Tox *, uint32_t conference_number, uint32_t peer_number, const uint8_t *title, size_t length, void *user_data) {
 	LOGTOXCB("conference_title_cb");
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 
-	auto& g = ts->_tox_conferences[conference_number];
+	auto& c = ts->_tox_conferences[conference_number];
 
 	(void)peer_number; // TODO: ??
 
-	g.title = std::string(reinterpret_cast<const char*>(title), length);
+	c.title = std::string(reinterpret_cast<const char*>(title), length);
 }
 
 static void conference_peer_name_cb(Tox *, uint32_t conference_number, uint32_t peer_number, const uint8_t *name, size_t length, void *user_data) {
 	LOGTOXCB("conference_peer_name_cb");
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 
-	auto& g = ts->_tox_conferences[conference_number];
-	g.peers[peer_number] = std::string(reinterpret_cast<const char*>(name), length);
+	auto& c = ts->_tox_conferences[conference_number];
+	c.peers[peer_number] = std::string(reinterpret_cast<const char*>(name), length);
 }
 
 static void conference_peer_list_changed_cb(Tox *tox, uint32_t conference_number, void *user_data) {
@@ -1037,12 +1062,17 @@ static void group_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, 
 	LOGTOXCB("group_message_cb");
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 	auto& group = ts->_tox_groups[group_number];
+
+	group.messages.push_back({peer_id, type, std::string{reinterpret_cast<const char*>(message), length}});
 }
 
 static void group_private_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, void *user_data) {
 	LOGTOXCB("group_private_message_cb");
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 	auto& group = ts->_tox_groups[group_number];
+
+	// TODO: flag as private
+	group.messages.push_back({peer_id, type, std::string{reinterpret_cast<const char*>(message), length}});
 }
 
 static void group_custom_packet_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, const uint8_t *data, size_t length, void *user_data) {

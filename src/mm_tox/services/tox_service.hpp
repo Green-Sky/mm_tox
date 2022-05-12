@@ -91,6 +91,8 @@ class ToxService : public MM::Services::Service {
 				// connection type (nah, just query)
 			};
 			std::map<uint32_t, Peer> peers; // peer_number
+
+			std::vector<std::tuple<uint32_t, Tox_Message_Type, std::string>> messages; // peer_id, msg_type, msg
 		};
 		std::map<uint32_t, ToxGroup> _tox_groups; // group_number
 
@@ -142,6 +144,9 @@ class ToxService : public MM::Services::Service {
 
 		bool add_friend(const uint8_t tox_id[TOX_ADDRESS_SIZE], std::string_view msg);
 		bool add_friend(std::string_view text_tox_id, std::string_view msg);
+
+		// send a message to a group
+		bool group_send_message(uint32_t group_number, std::string_view msg);
 
 		std::string get_name(void);
 		bool set_name(std::string_view new_name);

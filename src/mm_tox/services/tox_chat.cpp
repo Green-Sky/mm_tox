@@ -282,9 +282,13 @@ void ToxChat::renderChats(Engine& engine) {
 
 					static std::string msg;
 					bool hit_enter = ImGui::InputTextWithHint("##label", "type your message here...", &msg, ImGuiInputTextFlags_EnterReturnsTrue);
+					if (hit_enter) {
+						ImGui::SetKeyboardFocusHere(-1);
+					}
 					ImGui::SameLine();
 					if ((ImGui::Button("send") || hit_enter) && !msg.empty()) {
-						bool r = ts.friend_send_message(f_num, msg); assert(r);
+						bool r = ts.friend_send_message(f_num, msg);
+						//assert(r);
 						msg.clear();
 					}
 
@@ -316,9 +320,13 @@ void ToxChat::renderChats(Engine& engine) {
 
 					static std::string msg;
 					bool hit_enter = ImGui::InputTextWithHint("##label", "type your message here...", &msg, ImGuiInputTextFlags_EnterReturnsTrue);
+					if (hit_enter) {
+						ImGui::SetKeyboardFocusHere(-1);
+					}
 					ImGui::SameLine();
 					if ((ImGui::Button("send") || hit_enter) && !msg.empty()) {
-						bool r = ts.conference_send_message(c_num, msg); assert(r);
+						bool r = ts.conference_send_message(c_num, msg);
+						//assert(r);
 						msg.clear();
 					}
 
@@ -328,18 +336,19 @@ void ToxChat::renderChats(Engine& engine) {
 
 			// groups
 			for (uint32_t g_num : _active_chats_g) {
-				std::string tab_title{ts._tox_groups[g_num].name};
+				const auto& g = ts._tox_groups[g_num];
+				std::string tab_title{g.name};
 				tab_title += "##";
 				tab_title += std::to_string(g_num);
 
 				if (ImGui::BeginTabItem(tab_title.c_str())) {
-#if 0
+					ImGui::TextUnformatted(g.topic.c_str());
+					ImGui::Separator();
 					ImGui::BeginChild("##scrollingregion", ImVec2(0, -23));
 
-					for (auto& msg_ent : ts._tox_conferences[c_num].messages) {
+					for (const auto& msg_ent : g.messages) {
 						if (std::get<Tox_Message_Type>(msg_ent) == Tox_Message_Type::TOX_MESSAGE_TYPE_NORMAL) {
-							//ImGui::Text("[%s]: %s", ts._tox_groups[g_num].peers[std::get<0>(msg_ent)].c_str(), std::get<std::string>(msg_ent).c_str());
-							ImGui::Text("[%s]: %s", ts._tox_conferences[c_num].peers[std::get<0>(msg_ent)].c_str(), std::get<std::string>(msg_ent).c_str());
+							ImGui::Text("[%s]: %s", g.peers.at(std::get<0>(msg_ent)).name.c_str(), std::get<std::string>(msg_ent).c_str());
 						}
 					}
 
@@ -347,12 +356,15 @@ void ToxChat::renderChats(Engine& engine) {
 
 					static std::string msg;
 					bool hit_enter = ImGui::InputTextWithHint("##label", "type your message here...", &msg, ImGuiInputTextFlags_EnterReturnsTrue);
+					if (hit_enter) {
+						ImGui::SetKeyboardFocusHere(-1);
+					}
 					ImGui::SameLine();
 					if ((ImGui::Button("send") || hit_enter) && !msg.empty()) {
-						bool r = ts.conference_send_message(c_num, msg); assert(r);
+						bool r = ts.group_send_message(g_num, msg);
+						//assert(r);
 						msg.clear();
 					}
-#endif
 
 					ImGui::EndTabItem();
 				}
