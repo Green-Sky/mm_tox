@@ -36,22 +36,24 @@ class ToxService : public MM::Services::Service {
 	public:
 		std::string _path_to_toxsave;
 
-		std::string _app_name = "NoAppName";
+		std::string _app_name {"NoAppName"};
 
-		struct Tox* _tox = nullptr;
+		struct Tox* _tox {nullptr};
+
+		bool _state_dirty {false}; // true causes update_savefile() after iterate
 
 		struct ToxFriend {
-			bool __dirty = true; // used for sending internal state
-			bool mm_instance = false;
-			std::string mm_app{};
+			bool __dirty {true}; // used for sending internal state
+			bool mm_instance {false};
+			std::string mm_app;
 
-			Tox_Connection connection_status = TOX_CONNECTION_NONE;
+			Tox_Connection connection_status {TOX_CONNECTION_NONE};
 
 			std::string name;
 			std::string status_msg;
-			Tox_User_Status status = TOX_USER_STATUS_NONE;
+			Tox_User_Status status {TOX_USER_STATUS_NONE};
 
-			bool typing = false;
+			bool typing {false};
 
 			std::vector<std::tuple<bool, Tox_Message_Type, std::string>> messages; // self, msg_type, msg
 
@@ -64,7 +66,6 @@ class ToxService : public MM::Services::Service {
 
 		struct ToxConference {
 			Tox_Conference_Type type;
-			//bool connected = false; // ??
 			std::string title;
 
 			std::map<uint32_t, std::string> peers; // peer_number, name
@@ -97,7 +98,7 @@ class ToxService : public MM::Services::Service {
 		//struct ToxFriendMessage {
 			//uint32_t message_id;
 			//std::string msg;
-			//bool receipt_received = false;
+			//bool receipt_received {false};
 		//};
 		//std::map<uint32_t, std::vector<ToxFriendMessage>> _tox_friend_msgs;
 

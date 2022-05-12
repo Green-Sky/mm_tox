@@ -19,6 +19,8 @@
 #define LOG_DEBUG(...)		__LOG_DEBUG("MM::Tox", __VA_ARGS__)
 #define LOG_TRACE(...)		__LOG_TRACE("MM::Tox", __VA_ARGS__)
 
+// https://www.youtube.com/watch?v=pyn6wPKxCmA
+
 namespace MM::Tox::Services {
 
 bool ToxChat::enable(Engine& engine, std::vector<UpdateStrategies::TaskInfo>& task_array) {
@@ -68,8 +70,7 @@ void ToxChat::focusChat(uint32_t id, bool conference, bool group) {
 	if (conference) {
 		_active_chats_c.emplace(id); // ensure its open
 	} else if (group) {
-		//TODO: group
-		//_active_chats_g.emplace(id); // ensure its open
+		_active_chats_g.emplace(id); // ensure its open
 	} else {
 		_active_chats_f.emplace(id); // ensure its open
 	}
@@ -93,6 +94,24 @@ void ToxChat::renderFriendGroupList(Engine& engine) {
 		ImGui::TableHeadersRow();
 
 		size_t table_id = 0;
+		for (auto& ge : ts._tox_groups) {
+			ImGui::TableNextRow();
+			ImGui::PushID(table_id++);
+
+			ImGui::TableNextColumn();
+			if (ImGui::Selectable("g##sel", false, ImGuiSelectableFlags_SpanAllColumns)) {
+				focusChat(ge.first, false, true);
+			}
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", ge.first);
+
+			ImGui::TableSetColumnIndex(3);
+			ImGui::Text("%s", ge.second.name.c_str());
+
+			ImGui::PopID();
+		} // groups
+
 		for (auto& ce : ts._tox_conferences) {
 			ImGui::TableNextRow();
 			ImGui::PushID(table_id++);
@@ -119,7 +138,7 @@ void ToxChat::renderFriendGroupList(Engine& engine) {
 				//ImGui::EndPopup();
 			//}
 			ImGui::PopID();
-		} // groups
+		} // conferences
 
 		for (auto& fe : ts._tox_friends) {
 			ImGui::TableNextRow();
@@ -302,6 +321,38 @@ void ToxChat::renderChats(Engine& engine) {
 						bool r = ts.conference_send_message(c_num, msg); assert(r);
 						msg.clear();
 					}
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			// groups
+			for (uint32_t g_num : _active_chats_g) {
+				std::string tab_title{ts._tox_groups[g_num].name};
+				tab_title += "##";
+				tab_title += std::to_string(g_num);
+
+				if (ImGui::BeginTabItem(tab_title.c_str())) {
+#if 0
+					ImGui::BeginChild("##scrollingregion", ImVec2(0, -23));
+
+					for (auto& msg_ent : ts._tox_conferences[c_num].messages) {
+						if (std::get<Tox_Message_Type>(msg_ent) == Tox_Message_Type::TOX_MESSAGE_TYPE_NORMAL) {
+							//ImGui::Text("[%s]: %s", ts._tox_groups[g_num].peers[std::get<0>(msg_ent)].c_str(), std::get<std::string>(msg_ent).c_str());
+							ImGui::Text("[%s]: %s", ts._tox_conferences[c_num].peers[std::get<0>(msg_ent)].c_str(), std::get<std::string>(msg_ent).c_str());
+						}
+					}
+
+					ImGui::EndChild();
+
+					static std::string msg;
+					bool hit_enter = ImGui::InputTextWithHint("##label", "type your message here...", &msg, ImGuiInputTextFlags_EnterReturnsTrue);
+					ImGui::SameLine();
+					if ((ImGui::Button("send") || hit_enter) && !msg.empty()) {
+						bool r = ts.conference_send_message(c_num, msg); assert(r);
+						msg.clear();
+					}
+#endif
 
 					ImGui::EndTabItem();
 				}
