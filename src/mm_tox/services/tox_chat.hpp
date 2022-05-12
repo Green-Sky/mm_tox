@@ -14,6 +14,7 @@ class ToxChat : public MM::Services::Service {
 		bool _show_settings = false;
 
 		std::set<uint32_t> _active_chats_f;
+		std::set<uint32_t> _active_chats_g;
 		std::set<uint32_t> _active_chats_c;
 
 		struct {
