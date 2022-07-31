@@ -73,7 +73,7 @@ static void group_voice_state_cb(Tox *tox, uint32_t group_number, Tox_Group_Voic
 static void group_topic_lock_cb(Tox *tox, uint32_t group_number, Tox_Group_Topic_Lock topic_lock, void *user_data);
 static void group_peer_limit_cb(Tox *tox, uint32_t group_number, uint32_t peer_limit, void *user_data);
 static void group_password_cb(Tox *tox, uint32_t group_number, const uint8_t *password, size_t length, void *user_data);
-static void group_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, void *user_data);
+static void group_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, uint32_t message_id, void *user_data);
 static void group_private_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, void *user_data);
 static void group_custom_packet_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, const uint8_t *data, size_t length, void *user_data);
 static void group_custom_private_packet_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, const uint8_t *data, size_t length, void *user_data);
@@ -176,12 +176,17 @@ ToxService::ToxService(Engine& engine, const std::string& path_to_toxsave) {
 
 	auto& fs = engine.getService<MM::Services::FilesystemService>();
 
-	if (fs.exists(path_to_toxsave.c_str()) && !fs.isFile(path_to_toxsave.c_str())) {
+	// TODO: remove this hack once testnet is not useful
+	std::string tmp_save_path = path_to_toxsave;
+#ifdef USE_TEST_NETWORK
+	tmp_save_path = "testnet." + tmp_save_path;
+#endif
+	if (fs.exists(tmp_save_path.c_str()) && !fs.isFile(tmp_save_path.c_str())) {
 		LOG_CRIT("toxsave is not a file");
 		return;
 	}
 
-	_path_to_toxsave = path_to_toxsave;
+	_path_to_toxsave = tmp_save_path;
 }
 
 bool ToxService::enable(Engine& engine, std::vector<UpdateStrategies::TaskInfo>& task_array) {
@@ -203,7 +208,8 @@ bool ToxService::enable(Engine& engine, std::vector<UpdateStrategies::TaskInfo>&
 #ifdef USE_TEST_NETWORK
 	tox_options_set_local_discovery_enabled(options, false);
 #else
-	tox_options_set_local_discovery_enabled(options, true);
+	//tox_options_set_local_discovery_enabled(options, true);
+	tox_options_set_local_discovery_enabled(options, false);
 #endif
 
 	tox_options_set_udp_enabled(options, true);
@@ -514,6 +520,7 @@ void ToxService::iterate(Engine& engine) {
 		}
 	}
 
+
 	if (_state_dirty) {
 		update_savefile(engine);
 		_state_dirty = false;
@@ -725,12 +732,15 @@ bool ToxService::add_friend(std::string_view text_tox_id, std::string_view msg) 
 bool ToxService::group_send_message(uint32_t group_number, std::string_view msg) {
 	Tox_Err_Group_Send_Message err_group_send_m;
 
+	uint32_t msg_id;
+
 	tox_group_send_message(
 		_tox,
 		group_number,
 		Tox_Message_Type::TOX_MESSAGE_TYPE_NORMAL,
 		reinterpret_cast<const uint8_t*>(msg.data()),
 		msg.size(),
+		&msg_id,
 		&err_group_send_m
 	);
 
@@ -989,7 +999,7 @@ static void group_peer_name_cb(Tox *tox, uint32_t group_number, uint32_t peer_id
 	auto& group = ts->_tox_groups[group_number];
 
 	auto& peer = group.peers[peer_id];
-	peer.name.insert(0, reinterpret_cast<const char*>(name), length);
+	peer.name = std::string_view(reinterpret_cast<const char*>(name), length);
 }
 
 static void group_peer_status_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_User_Status status, void *user_data) {
@@ -1006,7 +1016,7 @@ static void group_topic_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, co
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 	auto& group = ts->_tox_groups[group_number];
 
-	group.topic.insert(0, reinterpret_cast<const char*>(topic), length);
+	group.topic = std::string_view(reinterpret_cast<const char*>(topic), length);
 	LOG_INFO("group changed topic to {}", group.topic);
 
 	ts->_state_dirty = true;
@@ -1039,6 +1049,14 @@ static void group_topic_lock_cb(Tox *tox, uint32_t group_number, Tox_Group_Topic
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 	auto& group = ts->_tox_groups[group_number];
 
+	{ // update topic
+		const size_t topic_size = tox_group_get_topic_size(ts->_tox, group_number, nullptr);
+		std::vector<uint8_t> topic;
+		topic.resize(topic_size);
+		tox_group_get_topic(ts->_tox, group_number, topic.data(), nullptr);
+		group.topic = std::string_view(reinterpret_cast<const char*>(topic.data()), topic_size);
+	}
+
 	ts->_state_dirty = true;
 }
 
@@ -1058,7 +1076,7 @@ static void group_password_cb(Tox *tox, uint32_t group_number, const uint8_t *pa
 	ts->_state_dirty = true;
 }
 
-static void group_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, void *user_data) {
+static void group_message_cb(Tox *tox, uint32_t group_number, uint32_t peer_id, Tox_Message_Type type, const uint8_t *message, size_t length, uint32_t message_id, void *user_data) {
 	LOGTOXCB("group_message_cb");
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 	auto& group = ts->_tox_groups[group_number];
@@ -1108,7 +1126,7 @@ static void group_invite_cb(Tox *tox, uint32_t friend_number, const uint8_t *inv
 
 	if (new_group_number != UINT32_MAX && err_gia == TOX_ERR_GROUP_INVITE_ACCEPT_OK) {
 		auto& group = ts->_tox_groups[new_group_number];
-		group.name.insert(0, reinterpret_cast<const char*>(group_name), group_name_length);
+		group.name = std::string_view(reinterpret_cast<const char*>(group_name), length);
 		LOG_INFO("accepted invite to group {} {}", new_group_number, group.name);
 	} else {
 		LOG_ERROR("error accepting group invite: {}", err_gia);
@@ -1123,6 +1141,17 @@ static void group_peer_join_cb(Tox *tox, uint32_t group_number, uint32_t peer_id
 	auto& group = ts->_tox_groups[group_number];
 
 	auto& peer = group.peers[peer_id];
+
+	// TODO: can fail
+	size_t name_size = tox_group_peer_get_name_size(tox, group_number, peer_id, nullptr);
+
+	std::vector<uint8_t> name;
+	name.resize(name_size);
+
+	// TODO: can fail
+	tox_group_peer_get_name(tox, group_number, peer_id, name.data(), nullptr);
+
+	peer.name = std::string_view{reinterpret_cast<const char*>(name.data()), name.size()};
 
 	ts->_state_dirty = true;
 }
@@ -1142,6 +1171,19 @@ static void group_self_join_cb(Tox *tox, uint32_t group_number, void *user_data)
 	auto* ts = static_cast<MM::Tox::Services::ToxService*>(user_data);
 	auto& group = ts->_tox_groups[group_number];
 
+	{ // update group name
+		// TODO: can fail
+		size_t name_size = tox_group_get_name_size(ts->_tox, group_number, nullptr);
+
+		std::vector<uint8_t> name;
+		name.resize(name_size);
+
+		// TODO: can fail
+		tox_group_get_name(tox, group_number, name.data(), nullptr);
+
+		group.name = std::string_view{reinterpret_cast<const char*>(name.data()), name.size()};
+	}
+
 	ts->_state_dirty = true;
 }
 
@@ -1159,5 +1201,38 @@ static void group_moderation_cb(Tox *tox, uint32_t group_number, uint32_t source
 	auto& group = ts->_tox_groups[group_number];
 
 	ts->_state_dirty = true;
+
+	//LOG_INFO("mod {} {} {}", source_peer_id, target_peer_id, mod_type);
+	const bool source_peer_exists = group.peers.count(source_peer_id);
+	const bool target_peer_exists = group.peers.count(target_peer_id);
+
+	if (!(source_peer_exists && target_peer_exists)) {
+		// we should manually update all peer roles for this group
+	}
+
+	std::string source_peer_name {"<UNK>"};
+	std::string target_peer_name {"<UNK>"};
+
+	if (source_peer_exists) {
+		source_peer_name = group.peers.at(source_peer_id).name;
+	}
+	if (target_peer_exists) {
+		source_peer_name = group.peers.at(target_peer_id).name;
+	}
+
+	switch (mod_type) {
+		case Tox_Group_Mod_Event::TOX_GROUP_MOD_EVENT_KICK:
+			LOG_INFO("MOD: {}({}) has kicked {}({})", source_peer_name, source_peer_id, target_peer_name, target_peer_id);
+			break;
+		case Tox_Group_Mod_Event::TOX_GROUP_MOD_EVENT_OBSERVER:
+			LOG_INFO("MOD: {}({}) has given {}({}) the observer role", source_peer_name, source_peer_id, target_peer_name, target_peer_id);
+			break;
+		case Tox_Group_Mod_Event::TOX_GROUP_MOD_EVENT_USER:
+			LOG_INFO("MOD: {}({}) has given {}({}) the user role", source_peer_name, source_peer_id, target_peer_name, target_peer_id);
+			break;
+		case Tox_Group_Mod_Event::TOX_GROUP_MOD_EVENT_MODERATOR:
+			LOG_INFO("MOD: {}({}) has given {}({}) the moderator role", source_peer_name, source_peer_id, target_peer_name, target_peer_id);
+			break;
+	}
 }
 
