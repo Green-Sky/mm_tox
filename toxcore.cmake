@@ -49,8 +49,17 @@ add_library(toxcore STATIC
 	${TOX_DIR}toxcore/group.h
 	${TOX_DIR}toxcore/group_announce.c
 	${TOX_DIR}toxcore/group_announce.h
+	${TOX_DIR}toxcore/group_chats.c
+	${TOX_DIR}toxcore/group_chats.h
+	${TOX_DIR}toxcore/group_common.h
+	${TOX_DIR}toxcore/group_connection.c
+	${TOX_DIR}toxcore/group_connection.h
 	${TOX_DIR}toxcore/group_moderation.c
 	${TOX_DIR}toxcore/group_moderation.h
+	${TOX_DIR}toxcore/group_onion_announce.c
+	${TOX_DIR}toxcore/group_onion_announce.h
+	${TOX_DIR}toxcore/group_pack.c
+	${TOX_DIR}toxcore/group_pack.h
 	${TOX_DIR}toxcore/LAN_discovery.c
 	${TOX_DIR}toxcore/LAN_discovery.h
 	${TOX_DIR}toxcore/list.c
@@ -119,13 +128,13 @@ else()
 endif()
 
 #if(RT_LIBRARIES)
-  #set(toxcore_LINK_MODULES ${toxcore_LINK_MODULES} ${RT_LIBRARIES})
-  #set(toxcore_PKGCONFIG_LIBS ${toxcore_PKGCONFIG_LIBS} -lrt)
+	#set(toxcore_LINK_MODULES ${toxcore_LINK_MODULES} ${RT_LIBRARIES})
+	#set(toxcore_PKGCONFIG_LIBS ${toxcore_PKGCONFIG_LIBS} -lrt)
 #endif()
 
 #if(SOCKET_LIBRARIES)
-  #set(toxcore_LINK_MODULES ${toxcore_LINK_MODULES} ${SOCKET_LIBRARIES})
-  #set(toxcore_PKGCONFIG_LIBS ${toxcore_PKGCONFIG_LIBS} -lsocket)
+	#set(toxcore_LINK_MODULES ${toxcore_LINK_MODULES} ${SOCKET_LIBRARIES})
+	#set(toxcore_PKGCONFIG_LIBS ${toxcore_PKGCONFIG_LIBS} -lsocket)
 #endif()
 
 if(WIN32)
