@@ -11,6 +11,8 @@
 
 #include <mm_tox/services/tox_service.hpp>
 
+#include <sodium/utils.h> // HACK
+
 #include <mm/logger.hpp>
 #define LOG_CRIT(...)		__LOG_CRIT(	"MM::Tox", __VA_ARGS__)
 #define LOG_ERROR(...)		__LOG_ERROR("MM::Tox", __VA_ARGS__)
@@ -234,6 +236,26 @@ void ToxChat::renderFriends(Engine& engine) {
 				ImGui::EndTabItem();
 			}
 
+			if (ImGui::BeginTabItem("Add Public Group")) {
+				if (ImGui::Button("join ngc public")) {
+					auto& ts = engine.getService<MM::Tox::Services::ToxService>();
+					auto name = ts.get_name();
+					uint8_t chat_id_bin[TOX_GROUP_CHAT_ID_SIZE] {};
+					char chat_id[] {"4D02722127AB4E36B3086FDE0BFE9255DD1EE9FC5EB4485AB6A34DFE5F4130B2"};
+
+					sodium_hex2bin(chat_id_bin, sizeof(chat_id_bin), chat_id, sizeof(chat_id)-1, NULL, NULL, NULL);
+
+					tox_group_join(
+						ts._tox,
+						chat_id_bin,
+						reinterpret_cast<const uint8_t*>(name.data()), name.size(),
+						nullptr, 0,
+						nullptr
+					);
+				}
+				ImGui::EndTabItem();
+			}
+
 			if (ImGui::BeginTabItem("Friend/Group Requests")) {
 				ImGui::Text("TODO: welp");
 				ImGui::EndTabItem();
@@ -348,7 +370,11 @@ void ToxChat::renderChats(Engine& engine) {
 
 					for (const auto& msg_ent : g.messages) {
 						if (std::get<Tox_Message_Type>(msg_ent) == Tox_Message_Type::TOX_MESSAGE_TYPE_NORMAL) {
-							ImGui::Text("[%s]: %s", g.peers.at(std::get<0>(msg_ent)).name.c_str(), std::get<std::string>(msg_ent).c_str());
+							const char* peer_name {"<UNK>"};
+							if (g.peers.count(std::get<0>(msg_ent))) {
+								peer_name = g.peers.at(std::get<0>(msg_ent)).name.c_str();
+							}
+							ImGui::Text("[%s]: %s", peer_name, std::get<std::string>(msg_ent).c_str());
 						}
 					}
 
