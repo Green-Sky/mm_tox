@@ -61,8 +61,8 @@ class ToxNetChanneled : public MM::Services::NetChanneledInterface {
 			return tox_max_custom_packet_size() - (sizeof(channel_id) + 3); // TODO: large packs ?
 		}
 
-		bool sendPacket(peer_id peer, channel_id channel, uint8_t* data, size_t data_size) override;
-		bool sendPacketLarge(peer_id peer, channel_id channel, uint8_t* data, size_t data_size) override;
+		bool sendPacket(peer_id peer, channel_id channel, const uint8_t* data, size_t data_size) override;
+		bool sendPacketLarge(peer_id peer, channel_id channel, const uint8_t* data, size_t data_size) override;
 
 		size_t forEachPacket(std::function<bool(peer_id, channel_id, uint8_t*, size_t)> fn) override;
 		size_t forEachPacketPeer(peer_id peer, std::function<bool(peer_id, channel_id, uint8_t*, size_t)> fn) override;

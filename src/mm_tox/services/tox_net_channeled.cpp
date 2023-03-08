@@ -129,7 +129,7 @@ void ToxNetChanneled::pull_fresh_packages(Engine&) {
 	}
 }
 
-bool ToxNetChanneled::sendPacket(peer_id peer, channel_id channel, uint8_t* data, size_t data_size) {
+bool ToxNetChanneled::sendPacket(peer_id peer, channel_id channel, const uint8_t* data, size_t data_size) {
 	if (channel >= 10) return false;
 	if (!data) return false;
 	if (data_size < 1) return false;
@@ -162,7 +162,7 @@ bool ToxNetChanneled::sendPacket(peer_id peer, channel_id channel, uint8_t* data
 	return true; // skipped
 }
 
-bool ToxNetChanneled::sendPacketLarge(peer_id peer, channel_id channel, uint8_t* data, size_t data_size) {
+bool ToxNetChanneled::sendPacketLarge(peer_id peer, channel_id channel, const uint8_t* data, size_t data_size) {
 	if (channel >= 10) return false;
 	if (!data) return false;
 	if (data_size < 1) return false;
