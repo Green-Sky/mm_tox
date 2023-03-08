@@ -84,6 +84,8 @@ add_library(toxcore STATIC
 	${TOX_DIR}toxcore/ping_array.h
 	${TOX_DIR}toxcore/ping.c
 	${TOX_DIR}toxcore/ping.h
+	${TOX_DIR}toxcore/shared_key_cache.c
+	${TOX_DIR}toxcore/shared_key_cache.h
 	${TOX_DIR}toxcore/state.c
 	${TOX_DIR}toxcore/state.h
 	${TOX_DIR}toxcore/TCP_client.c
